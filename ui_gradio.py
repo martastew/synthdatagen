@@ -19,10 +19,10 @@ def blend_model_with_background(model_file, background_image, angle, scale):
     return blended
 
 with gr.Blocks() as demo:
-    gr.Markdown("MLRS Blending Pipeline")
+    gr.Markdown("MLRS Blending")
 
     with gr.Row():
-        model_file = gr.File(label="Upload MSLR 3D Model (stub)", file_types=[".obj", ".glb", ".fbx"])
+        model_file = gr.File(label="Upload 3D Model", file_types=[".obj", ".glb", ".fbx"])
         background_image = gr.Image(label="Upload Background Image")
 
     with gr.Row():
