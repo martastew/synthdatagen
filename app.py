@@ -1,76 +1,92 @@
 import gradio as gr
-from PIL import Image, ImageEnhance
-import numpy as np
-import io
-import random
+import os
+import shutil
+import subprocess
+from generate_dataset import generate_synthetic_dataset
+from core.ai_background import generate_background
 
-def apply_weather_effect(image: Image.Image, weather: str) -> Image.Image:
-    width, height = image.size
-    overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+UPLOAD_DIR = "uploads"
+BACKGROUND_DIR = "backgrounds"
+GENERATED_DIR = "generated"
 
-    if weather == "Snow":
-        for _ in range(500):
-            x = random.randint(0, width)
-            y = random.randint(0, height)
-            overlay.putpixel((x, y), (255, 255, 255, 180))
-    elif weather == "Rain":
-        for _ in range(300):
-            x = random.randint(0, width - 1)
-            y = random.randint(0, height - 10)
-            for i in range(10):
-                overlay.putpixel((x, y + i), (100, 100, 255, 100))
-    elif weather == "Fog":
-        fog_layer = Image.new("RGBA", image.size, (200, 200, 200, 100))
-        overlay = Image.alpha_composite(overlay, fog_layer)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(BACKGROUND_DIR, exist_ok=True)
+os.makedirs(GENERATED_DIR, exist_ok=True)
 
-    return Image.alpha_composite(image, overlay)
+def convert_fbx_to_glb(fbx_path):
+    glb_path = fbx_path.replace(".fbx", ".glb")
+    blender_script = "core/fbx_to_glb.py"
+    subprocess.run([
+        "blender", "--background", "--python", blender_script, "--", fbx_path, glb_path
+    ], check=True)
+    return glb_path
 
-def render_model_placeholder(angle, scale):
-    # This is a placeholder for true 3D rendering
-    canvas = Image.new("RGBA", (512, 512), (150, 150, 150, 255))
-    shape = Image.new("RGBA", (200, 100), (255, 0, 0, 255))
-    shape = shape.rotate(angle, expand=True)
-    shape = shape.resize((int(200 * scale), int(100 * scale)))
-    canvas.paste(shape, (156, 206), shape)
-    return canvas
+def pipeline(fbx_file, prompt, selected_bg, num_images, weather_effect):
+    if fbx_file is None:
+        return "❌ Please upload a 3D model", [], None
 
-def blend_model_with_background(model_file, background_image, angle, scale, weather):
-    if not background_image:
-        return "Please upload background image"
+    ext = os.path.splitext(fbx_file.name)[-1].lower()
+    fbx_path = os.path.join(UPLOAD_DIR, os.path.basename(fbx_file.name))
+    shutil.copyfile(fbx_file.name, fbx_path)
 
-    # Render fake model
-    model_image = render_model_placeholder(angle, scale)
+    if ext == ".fbx":
+        try:
+            model_preview = convert_fbx_to_glb(fbx_path)
+        except Exception as e:
+            model_preview = None
+    else:
+        model_preview = fbx_path
 
-    # Blend model onto background
-    background = Image.open(background_image).convert("RGBA")
-    background = background.resize((512, 512))
-    composite = Image.alpha_composite(background, model_image)
+    bg_path = None
+    if selected_bg is not None:
+        bg_path = os.path.join(BACKGROUND_DIR, os.path.basename(selected_bg.name))
+        shutil.copyfile(selected_bg.name, bg_path)
+    elif prompt:
+        try:
+            bg_path = generate_background(prompt, size="1024x1024", save_dir=BACKGROUND_DIR)
+        except Exception as e:
+            return f"⚠️ Failed to generate background: {str(e)}", [], model_preview
 
-    # Apply weather
-    final = apply_weather_effect(composite, weather)
-    return final
-
-with gr.Blocks() as demo:
-    gr.Markdown("Blending Pipeline with Weather Effects and Model Rotation")
-
-    with gr.Row():
-        model_file = gr.File(label="Upload MSLR 3D Model (stub)", file_types=[".obj", ".glb", ".fbx"])
-        background_image = gr.Image(label="Upload Background Image")
-
-    with gr.Row():
-        angle = gr.Slider(0, 360, value=0, label="Rotation Angle (°)")
-        scale = gr.Slider(0.1, 3.0, value=1.0, label="Scale")
-        weather = gr.Radio(["None", "Snow", "Rain", "Fog"], label="Weather Effect")
-
-    blend_button = gr.Button("Start Blending")
-    output_image = gr.Image(label="Blended Output")
-
-    blend_button.click(
-        fn=blend_model_with_background,
-        inputs=[model_file, background_image, angle, scale, weather],
-        outputs=output_image
+    generate_synthetic_dataset(
+        fbx_path=fbx_path,
+        backgrounds_dir=BACKGROUND_DIR,
+        selected_bg_path=bg_path,
+        num=num_images,
+        weather=weather_effect
     )
 
-    gr.Markdown("This demo uses placeholder rendering. For true rendering, integrate Three.js or Blender Python API to render .obj/.glb files with lighting and environment.")
+    previews = sorted([
+        os.path.join(GENERATED_DIR, f)
+        for f in os.listdir(GENERATED_DIR)
+        if f.endswith("_final.png")
+    ], key=os.path.getmtime, reverse=True)[:3]
 
-demo.launch()
+    return f"✅ Generated {num_images} images from: {os.path.basename(fbx_file.name)}", previews, model_preview
+
+with gr.Blocks() as demo:
+    gr.Markdown("# 🛠️ SynthTarget: Synthetic 3D Dataset Generator")
+
+    with gr.Row():
+        fbx_file = gr.File(label="Upload .fbx, .glb or .obj 3D Model", file_types=[".fbx", ".glb", ".obj"])
+        model_viewer = gr.Model3D(label="Preview Model")
+
+    with gr.Row():
+        prompt = gr.Textbox(label="Prompt for AI background (optional)", placeholder="futuristic desert base")
+        selected_bg = gr.File(label="Or Upload Custom Background", file_types=[".jpg", ".jpeg", ".png"])
+
+    with gr.Row():
+        weather_effect = gr.Radio(label="Weather Effect", choices=["none", "fog", "rain", "snow"], value="none")
+        num_images = gr.Slider(minimum=1, maximum=10, value=3, label="Number of images")
+
+    generate_btn = gr.Button("Generate Dataset")
+    status = gr.Textbox(label="Status")
+    gallery = gr.Gallery(label="Preview of Generated Images", columns=3, rows=1, height=200)
+
+    generate_btn.click(
+        pipeline,
+        inputs=[fbx_file, prompt, selected_bg, num_images, weather_effect],
+        outputs=[status, gallery, model_viewer]
+    )
+
+if __name__ == "__main__":
+    demo.launch(share=True)

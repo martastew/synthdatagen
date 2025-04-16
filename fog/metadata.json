@@ -1,0 +1,62 @@
+[
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\8c2ca7eb-fe71-4426-8a08-a21d79fb59b8_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 169.26695901917319,
+            "y": 193.19606836076593,
+            "z": 91.44505520774118
+        },
+        "scale": 1.2
+    },
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\b60f1b42-efa8-4aa2-8cc0-0134515ce6bb_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 14.071444747843888,
+            "y": 101.14987280996472,
+            "z": 221.17735899014994
+        },
+        "scale": 1.4
+    },
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\831ecbc3-2aa7-4682-b808-92e55cf452c5_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 86.97677467628041,
+            "y": 256.4262786034857,
+            "z": 184.79138874224216
+        },
+        "scale": 0.76
+    },
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\ca824100-472d-40f4-a92a-de940683bbdf_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 346.0338415973473,
+            "y": 274.006612143306,
+            "z": 178.50202748139986
+        },
+        "scale": 1.26
+    },
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\b4f8431a-76a7-44db-b1a2-17db5434ce36_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 216.18475826737628,
+            "y": 225.93457925873417,
+            "z": 332.12031251475656
+        },
+        "scale": 0.82
+    },
+    {
+        "image": "C:\\Users\\Maria\\synthgenfinal\\generated\\a5663bfe-713a-46de-b695-168482e0b132_final.png",
+        "model": "96l6e_mobile_anti-air_radar.glb",
+        "rotation": {
+            "x": 41.923128499389954,
+            "y": 249.918321897183,
+            "z": 324.10965538534293
+        },
+        "scale": 1.28
+    }
+]

@@ -1,0 +1,6 @@
+{
+    "python.analysis.diagnosticSeverityOverrides": {
+      "reportMissingImports": "none"
+    },
+    "python.analysis.extraPaths": ["./core"]
+  }  

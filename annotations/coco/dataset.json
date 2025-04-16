@@ -1,0 +1,31 @@
+{
+    "images": [
+        {
+            "id": "385a4a15-8512-45ef-a34d-360b401b9c36",
+            "file_name": "c6a1d19c-7d3a-436b-9063-e6206f479d51_final.png",
+            "width": 512,
+            "height": 512
+        }
+    ],
+    "annotations": [
+        {
+            "id": "d2bb0a63-17de-4149-99b5-ebd9ff751a38",
+            "image_id": "385a4a15-8512-45ef-a34d-360b401b9c36",
+            "category_id": 1,
+            "bbox": [
+                0,
+                0,
+                1024,
+                1024
+            ],
+            "area": 1048576,
+            "iscrowd": 0
+        }
+    ],
+    "categories": [
+        {
+            "id": 1,
+            "name": "object"
+        }
+    ]
+}
